@@ -6,7 +6,7 @@
 /*   By: jhurpy <jhurpy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/25 03:43:52 by jhurpy            #+#    #+#             */
-/*   Updated: 2023/10/30 20:51:31 by jhurpy           ###   ########.fr       */
+/*   Updated: 2023/10/31 01:17:11 by jhurpy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ typedef struct s_table
 	time_t				time_to_die;
 	time_t				time_to_eat;
 	time_t				time_to_sleep;
-	int					number_of_meals;
+	unsigned int		number_of_meals;
 	time_t				start_time;
 	pthread_mutex_t		write_locks;
 	pthread_mutex_t		*fork_locks;
@@ -56,12 +56,14 @@ typedef struct s_philo
 	pthread_t			thread;
 	int					id_philo;
 	time_t				last_meal;
-	int					nb_meals;
+	unsigned int		nb_meals;
 	unsigned int		forks[2];
+	pthread_mutex_t		time_lock;
 	t_table				*table;
 }	t_philo;
 
 t_table	*init_table(int ac, char **av, int index);
+void	destroy_mutex_table(t_table *table);
 
 bool	check_argument(int ac, char **av);
 

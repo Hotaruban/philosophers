@@ -6,7 +6,7 @@
 /*   By: jhurpy <jhurpy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/25 03:43:55 by jhurpy            #+#    #+#             */
-/*   Updated: 2023/10/30 22:14:28 by jhurpy           ###   ########.fr       */
+/*   Updated: 2023/10/31 03:46:28 by jhurpy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,6 @@ static bool	start_simulation(t_table *table)
 	i = 0;
 	while (i < table->nb_philos)
 	{
-		printf(CYAN "id philo: %d\n" NC, table->philos[i]->id_philo);
 		if (pthread_create(&table->philos[i]->thread, NULL, &routine,
 				table->philos[i]) != 0)
 		{
@@ -43,12 +42,14 @@ static void	stop_simulation(t_table *table)
 		i++;
 	}
 	destroy_mutex_table(table);
+	free_table(table);
 }
 
 int	main(int ac, char **av)
 {
 	t_table	*table;
 
+	table = NULL;
 	if (ac < 5 || ac > 6)
 	{
 		printf(RED "Error: wrong number of arguments\n" NC);
@@ -59,7 +60,6 @@ int	main(int ac, char **av)
 	table = init_table(ac, av, 1);
 	if (!table)
 		return (EXIT_FAILURE);
-	//printf(CYAN "id philo: %d\n" NC, table->philos[4]->id_philo);
 	start_simulation(table);
 	stop_simulation(table);
 	return (EXIT_SUCCESS);

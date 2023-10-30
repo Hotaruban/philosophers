@@ -6,7 +6,7 @@
 /*   By: jhurpy <jhurpy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/25 14:50:43 by jhurpy            #+#    #+#             */
-/*   Updated: 2023/10/30 21:39:36 by jhurpy           ###   ########.fr       */
+/*   Updated: 2023/10/31 01:18:53 by jhurpy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,6 +80,11 @@ static t_philo	**init_philosophers(t_table *table)
 		philos[i]->table = table;
 		philos[i]->id_philo = i;
 		philos[i]->nb_meals = 0;
+		if (pthread_mutex_init(&philos[i]->time_lock, NULL) == -1)
+		{
+			printf(RED "Error: mutex init failed\n" NC);
+			return (NULL);
+		}
 		assign_forks(philos[i]);
 		i++;
 	}

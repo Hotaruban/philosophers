@@ -6,7 +6,7 @@
 #    By: jhurpy <jhurpy@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/10/29 17:16:49 by jhurpy            #+#    #+#              #
-#    Updated: 2023/10/30 16:54:27 by jhurpy           ###   ########.fr        #
+#    Updated: 2023/10/31 00:55:45 by jhurpy           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -30,6 +30,7 @@ SRC =	philo.c \
 		routine.c \
 		time.c \
 		writer.c \
+		exit_philo.c \
 		utils_philo.c
 OBJ = $(SRC:.c=.o)
 
