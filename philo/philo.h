@@ -6,7 +6,7 @@
 /*   By: jhurpy <jhurpy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/25 03:43:52 by jhurpy            #+#    #+#             */
-/*   Updated: 2023/10/31 01:17:11 by jhurpy           ###   ########.fr       */
+/*   Updated: 2023/11/02 01:42:18 by jhurpy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,8 @@ typedef struct s_table
 	time_t				time_to_sleep;
 	unsigned int		number_of_meals;
 	time_t				start_time;
+	bool				sim_stop;
+	pthread_mutex_t		sim_stop_lock;
 	pthread_mutex_t		write_locks;
 	pthread_mutex_t		*fork_locks;
 	t_philo				**philos;

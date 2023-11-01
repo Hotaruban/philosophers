@@ -6,7 +6,7 @@
 /*   By: jhurpy <jhurpy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/25 03:43:55 by jhurpy            #+#    #+#             */
-/*   Updated: 2023/10/31 03:46:28 by jhurpy           ###   ########.fr       */
+/*   Updated: 2023/10/31 23:02:58 by jhurpy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,7 +60,10 @@ int	main(int ac, char **av)
 	table = init_table(ac, av, 1);
 	if (!table)
 		return (EXIT_FAILURE);
-	start_simulation(table);
+	if (start_simulation(table) == false)
+		return (EXIT_FAILURE);
+	if (table->nb_philos > 1)
+		// undertaker(table); check if a philo is dead
 	stop_simulation(table);
 	return (EXIT_SUCCESS);
 }
