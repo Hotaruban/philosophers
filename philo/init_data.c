@@ -50,19 +50,6 @@ static void	assign_forks(t_philo *philo)
 	}
 }
 
-static bool	init_mutex_table(t_table *table)
-{
-	table->fork_locks = init_forks(table);
-	if (!table->fork_locks)
-		return (false);
-	if (pthread_mutex_init(&table->write_locks, NULL) == -1)
-	{
-		printf(RED "Error: mutex init failed\n" NC);
-		return (false);
-	}
-	return (true);
-}
-
 static t_philo	**init_philosophers(t_table *table)
 {
 	t_philo			**philos;
@@ -77,25 +64,44 @@ static t_philo	**init_philosophers(t_table *table)
 		philos[i] = malloc(sizeof(t_philo) * 1);
 		if (!philos[i])
 			return (printf(RED "Error: malloc failed\n" NC), NULL);
-		philos[i]->table = table;
-		philos[i]->id_philo = i;
-		philos[i]->nb_meals = 0;
-		if (pthread_mutex_init(&philos[i]->time_lock, NULL) == -1)
+		if (pthread_mutex_init(&philos[i]->time_lock, 0) == -1)
 		{
 			printf(RED "Error: mutex init failed\n" NC);
 			return (NULL);
 		}
+		philos[i]->table = table;
+		philos[i]->id_philo = i;
+		philos[i]->nb_meals = 0;
 		assign_forks(philos[i]);
+		philos[i]->last_meal = 0;
 		i++;
 	}
 	return (philos);
+}
+
+static bool	init_mutex_table(t_table *table)
+{
+	table->fork_locks = init_forks(table);
+	if (!table->fork_locks)
+		return (false);
+	if (pthread_mutex_init(&table->sim_stop_lock, NULL) == -1)
+	{
+		printf(RED "Error: mutex init failed\n" NC);
+		return (false);
+	}
+	if (pthread_mutex_init(&table->write_locks, NULL) == -1)
+	{
+		printf(RED "Error: mutex init failed\n" NC);
+		return (false);
+	}
+	return (true);
 }
 
 t_table	*init_table(int ac, char **av, int index)
 {
 	t_table	*table;
 
-	table = malloc(sizeof(t_table));
+	table = malloc(sizeof(t_table) * 1);
 	if (!table)
 		return (NULL);
 	table->nb_philos = ft_atoi(av[index++]);
@@ -105,8 +111,13 @@ t_table	*init_table(int ac, char **av, int index)
 	table->number_of_meals = -1;
 	if (ac == 6)
 		table->number_of_meals = ft_atoi(av[index++]);
+	table->philos = init_philosophers(table);
+	if (!table->philos)
+		return (NULL);
 	if (init_mutex_table(table) == false)
 		return (NULL);
-	table->philos = init_philosophers(table);
+	table->sim_stop = false;
+	table->start_time = 0;
+	table->undertaker = NULL;
 	return (table);
 }

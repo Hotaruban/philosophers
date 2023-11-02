@@ -20,22 +20,38 @@ void	destroy_mutex_table(t_table *table)
 	while (i < table->nb_philos)
 	{
 		pthread_mutex_destroy(&table->fork_locks[i]);
+		pthread_mutex_destroy(&table->philos[i]->time_lock);
 		i++;
 	}
 	pthread_mutex_destroy(&table->write_locks);
+	pthread_mutex_destroy(&table->sim_stop_lock);
 }
 
 void	free_table(t_table *table)
 {
 	unsigned int	i;
 
-	i = 0;
-	while (i < table->nb_philos)
+	if (!table)
+		return ;
+	if (table->fork_locks != NULL)
+		free(table->fork_locks);
+	if (table->philos != NULL)
 	{
-		free(table->philos[i]);
-		i++;
+		i = 0;
+		while (i < table->nb_philos)
+		{
+			if (table->philos[i] != NULL)
+				free(table->philos[i]);
+			i++;
+		}
+		free(table->philos);
 	}
-	free(table->philos);
-	free(table->fork_locks);
 	free(table);
+	return ;
+}
+
+void	destroy_and_free(t_table *table)
+{
+	destroy_mutex_table(table);
+	free_table(table);
 }

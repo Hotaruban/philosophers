@@ -33,7 +33,7 @@ static bool	is_number(char *number)
 
 static bool	is_integer(char *integer, int flag)
 {
-	int num;
+	int	num;
 
 	if (ft_strlen(integer) > 10)
 	{
@@ -56,7 +56,7 @@ static bool	is_integer(char *integer, int flag)
 
 bool	check_argument(int ac, char **av)
 {
-	int i;
+	int	i;
 
 	i = 1;
 	while (i < ac)

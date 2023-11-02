@@ -29,6 +29,7 @@ SRC =	philo.c \
 		init_data.c \
 		routine.c \
 		time.c \
+		undertaker.c \
 		writer.c \
 		exit_philo.c \
 		utils_philo.c

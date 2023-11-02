@@ -30,12 +30,6 @@
 
 # define MAX_PHILO		250
 
-# define FORK			"has taken a fork"
-# define EAT			"is eating"
-# define SLEEP			"is sleeping"
-# define THINK			"is thinking"
-# define DIED			"died"
-
 typedef struct s_philo	t_philo;
 
 typedef struct s_table
@@ -44,38 +38,48 @@ typedef struct s_table
 	time_t				time_to_die;
 	time_t				time_to_eat;
 	time_t				time_to_sleep;
-	unsigned int		number_of_meals;
-	time_t				start_time;
-	bool				sim_stop;
+	int					number_of_meals;
+	t_philo				**philos;
+	pthread_mutex_t		*fork_locks;
 	pthread_mutex_t		sim_stop_lock;
 	pthread_mutex_t		write_locks;
-	pthread_mutex_t		*fork_locks;
-	t_philo				**philos;
+	bool				sim_stop;
+	time_t				start_time;
+	pthread_t			undertaker;
 }	t_table;
 
 typedef struct s_philo
 {
 	pthread_t			thread;
-	int					id_philo;
-	time_t				last_meal;
-	unsigned int		nb_meals;
-	unsigned int		forks[2];
 	pthread_mutex_t		time_lock;
 	t_table				*table;
+	int					id_philo;
+	unsigned int		nb_meals;
+	unsigned int		forks[2];
+	time_t				last_meal;
 }	t_philo;
 
-t_table	*init_table(int ac, char **av, int index);
-void	destroy_mutex_table(t_table *table);
+typedef enum e_status
+{
+	DIED = 0,
+	EAT = 1,
+	SLEEP = 2,
+	THINK = 3,
+	FORK = 4,
+}	t_status;
 
 bool	check_argument(int ac, char **av);
-
+t_table	*init_table(int ac, char **av, int index);
 void	*routine(void *data);
-
+void	*undertaker(void *data);
+bool	has_sim_stopped(t_table *table);
 time_t	get_time(void);
+void	philo_find_morphee(t_table *table, time_t sleep_time);
 void	start_delay_diner(time_t start_time);
-
-void	print_state_philo(t_philo *philo, time_t *(get_time)(void), char *state);
-
+void	write_status(t_philo *philo, bool reaper_report, t_status status);
+void	destroy_and_free(t_table *table);
+void	free_table(t_table *table);
+void	destroy_mutex_table(t_table *table);
 size_t	ft_strlen(const char *s);
 int		ft_atoi(const char *s);
 int		ft_isdigit(int c);

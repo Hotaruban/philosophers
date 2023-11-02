@@ -24,7 +24,17 @@ static bool	start_simulation(t_table *table)
 				table->philos[i]) != 0)
 		{
 			printf(RED "Error: thread creation failed\n" NC);
+			destroy_and_free(table);
 			return (false);
+		}
+		if (table->nb_philos > 1)
+		{
+			if (pthread_create(&table->undertaker, NULL, &undertaker,
+					table) != 0)
+			{
+				printf(RED "Error: thread creation failed\n" NC);
+				destroy_and_free(table);
+			}
 		}
 		i++;
 	}
@@ -41,8 +51,7 @@ static void	stop_simulation(t_table *table)
 		pthread_join(table->philos[i]->thread, NULL);
 		i++;
 	}
-	destroy_mutex_table(table);
-	free_table(table);
+	destroy_and_free(table);
 }
 
 int	main(int ac, char **av)
@@ -62,8 +71,6 @@ int	main(int ac, char **av)
 		return (EXIT_FAILURE);
 	if (start_simulation(table) == false)
 		return (EXIT_FAILURE);
-	if (table->nb_philos > 1)
-		// undertaker(table); check if a philo is dead
 	stop_simulation(table);
 	return (EXIT_SUCCESS);
 }
