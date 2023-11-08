@@ -16,27 +16,20 @@ static bool	start_simulation(t_table *table)
 {
 	unsigned int	i;
 
-	table->start_time = get_time() + (table->nb_philos * 2 * 10);
+	table->start_time = get_time();
 	i = 0;
 	while (i < table->nb_philos)
 	{
 		if (pthread_create(&table->philos[i]->thread, NULL, &routine,
 				table->philos[i]) != 0)
 		{
-			printf(RED "Error: thread creation failed\n" NC);
 			destroy_and_free(table);
-			return (false);
+			return (printf(RED "Error: thread creation failed\n" NC), false);
 		}
-		if (table->nb_philos > 1)
-		{
-			if (pthread_create(&table->undertaker, NULL, &undertaker,
-					table) != 0)
-			{
-				printf(RED "Error: thread creation failed\n" NC);
-				destroy_and_free(table);
-			}
-		}
-		i++;
+		usleep(7);
+		i += 2;
+		if (i >= table->nb_philos && i % 2 == 0)
+			i = 1;
 	}
 	return (true);
 }
@@ -56,21 +49,18 @@ static void	stop_simulation(t_table *table)
 
 int	main(int ac, char **av)
 {
-	t_table	*table;
+	t_table	table;
 
-	table = NULL;
 	if (ac < 5 || ac > 6)
-	{
-		printf(RED "Error: wrong number of arguments\n" NC);
-		return (EXIT_FAILURE);
-	}
+		return (printf(RED "Error: wrong number of arguments\n" NC),
+			EXIT_FAILURE);
 	if (check_argument(ac, av) == false)
 		return (EXIT_FAILURE);
-	table = init_table(ac, av, 1);
-	if (!table)
+	if (init_table(&table, ac, av) == EXIT_FAILURE)
 		return (EXIT_FAILURE);
-	if (start_simulation(table) == false)
+	if (start_simulation(&table) == false)
 		return (EXIT_FAILURE);
-	stop_simulation(table);
+	undertaker(&table);
+	stop_simulation(&table);
 	return (EXIT_SUCCESS);
 }

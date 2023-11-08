@@ -27,14 +27,8 @@ void	philo_find_morphee(t_table *table, time_t sleep_time)
 	wake_up = get_time() + sleep_time;
 	while (get_time() < wake_up)
 	{
-		if (has_sim_stopped(table))
+		usleep(60);
+		if (table->sim_stop == true)
 			break ;
-		usleep(100);
 	}
-}
-
-void	start_delay_diner(time_t start_time)
-{
-	while (get_time() < start_time)
-		continue ;
 }

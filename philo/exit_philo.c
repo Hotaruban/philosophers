@@ -24,7 +24,6 @@ void	destroy_mutex_table(t_table *table)
 		i++;
 	}
 	pthread_mutex_destroy(&table->write_locks);
-	pthread_mutex_destroy(&table->sim_stop_lock);
 }
 
 void	free_table(t_table *table)
@@ -46,7 +45,6 @@ void	free_table(t_table *table)
 		}
 		free(table->philos);
 	}
-	free(table);
 	return ;
 }
 
