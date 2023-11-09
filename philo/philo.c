@@ -12,7 +12,7 @@
 
 #include "./philo.h"
 
-static bool	start_simulation(t_table *table)
+static int	start_simulation(t_table *table)
 {
 	unsigned int	i;
 
@@ -23,15 +23,15 @@ static bool	start_simulation(t_table *table)
 		if (pthread_create(&table->philos[i]->thread, NULL, &routine,
 				table->philos[i]) != 0)
 		{
-			destroy_and_free(table);
-			return (printf(RED "Error: thread creation failed\n" NC), false);
+			return (printf(RED "Error: thread creation failed\n" NC),
+				EXIT_FAILURE);
 		}
-		usleep(7);
+		usleep(5);
 		i += 2;
 		if (i >= table->nb_philos && i % 2 == 0)
 			i = 1;
 	}
-	return (true);
+	return (EXIT_SUCCESS);
 }
 
 static void	stop_simulation(t_table *table)
@@ -39,6 +39,7 @@ static void	stop_simulation(t_table *table)
 	unsigned int	i;
 
 	i = 0;
+	pthread_mutex_unlock(&table->write_locks);
 	while (i < table->nb_philos)
 	{
 		pthread_join(table->philos[i]->thread, NULL);
@@ -58,7 +59,7 @@ int	main(int ac, char **av)
 		return (EXIT_FAILURE);
 	if (init_table(&table, ac, av) == EXIT_FAILURE)
 		return (EXIT_FAILURE);
-	if (start_simulation(&table) == false)
+	if (start_simulation(&table) == EXIT_FAILURE)
 		return (EXIT_FAILURE);
 	undertaker(&table);
 	stop_simulation(&table);

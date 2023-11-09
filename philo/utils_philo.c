@@ -67,3 +67,21 @@ int	ft_strncmp(const char *s1, const char *s2, size_t n)
 	}
 	return (0);
 }
+
+void	*ft_calloc(size_t count, size_t size)
+{
+	char	*p;
+	char	*tmp;
+	size_t	n;
+
+	if (count == SIZE_MAX || size == SIZE_MAX)
+		return (NULL);
+	p = (void *)malloc(count * size);
+	if (p == NULL)
+		return (NULL);
+	n = count * size;
+	tmp = p;
+	while (n--)
+		*(unsigned char *)tmp++ = 0;
+	return (p);
+}

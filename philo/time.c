@@ -20,15 +20,29 @@ time_t	get_time(void)
 	return (time.tv_sec * 1000 + time.tv_usec / 1000);
 }
 
-void	philo_find_morphee(t_table *table, time_t sleep_time)
+int	check_if_phylo_alive(t_philo *philo, time_t time)
 {
-	time_t	wake_up;
-
-	wake_up = get_time() + sleep_time;
-	while (get_time() < wake_up)
+	pthread_mutex_lock(&philo->time_lock);
+	if (time > philo->time_alive)
 	{
-		usleep(60);
-		if (table->sim_stop == true)
+		philo->status = _dead;
+		pthread_mutex_unlock(&philo->time_lock);
+		return (1);
+	}
+	pthread_mutex_unlock(&philo->time_lock);
+	return (0);
+}
+
+void	hypnos_touch_philo(t_philo *philo, time_t time_ms)
+{
+	time_t	time;
+	
+	while (philo->status != _dead)
+	{
+		usleep(1);
+		time = get_time();
+		if (check_if_phylo_alive(philo, time)
+			|| time - philo->time_now >= time_ms)
 			break ;
 	}
 }

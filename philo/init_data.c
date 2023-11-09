@@ -12,59 +12,39 @@
 
 #include "./philo.h"
 
-static pthread_mutex_t	*init_forks(t_table *table)
+static int	init_mutex_philo(t_philo *philo)
 {
-	pthread_mutex_t	*forks;
-	unsigned int	i;
-
-	forks = malloc(sizeof(pthread_mutex_t) * table->nb_philos);
-	if (!forks)
-		return (printf(RED "Error: malloc failed\n" NC), NULL);
-	i = 0;
-	while (i < table->nb_philos)
-	{
-		if (pthread_mutex_init(&forks[i], NULL) == -1)
-			return (printf(RED "Error: mutex init failed\n" NC), NULL);
-		i++;
-	}
-	return (forks);
+	if (pthread_mutex_init(&philo->time_lock, 0) == -1)
+		return (printf(RED "Error: mutex init failed\n" NC), EXIT_FAILURE);
+	if (pthread_mutex_init(&philo->fork_lock, 0) == -1)
+		return (printf(RED "Error: mutex init failed\n" NC), EXIT_FAILURE);
+	return (EXIT_SUCCESS);
 }
 
 static t_philo	**init_philosophers(t_table *table)
 {
-	t_philo			**philos;
+	t_philo			**philo;
 	unsigned int	i;
 
-	philos = malloc(sizeof(t_philo) * table->nb_philos);
-	if (!philos)
+	philo = malloc(sizeof(t_philo) * table->nb_philos);
+	if (!philo)
 		return (printf(RED "Error: malloc failed\n" NC), NULL);
 	i = 0;
 	while (i < table->nb_philos)
 	{
-		philos[i] = malloc(sizeof(t_philo) * 1);
-		if (!philos[i])
+		philo[i] = malloc(sizeof(t_philo) * 1);
+		if (!philo[i])
 			return (printf(RED "Error: malloc failed\n" NC), NULL);
-		if (pthread_mutex_init(&philos[i]->time_lock, 0) == -1)
-			return (printf(RED "Error: mutex init failed\n" NC), NULL);
-		philos[i]->table = table;
-		philos[i]->id_philo = i;
-		philos[i]->meals_ate = 0;
-		philos[i]->forks[0] = philos[i]->id_philo;
-		philos[i]->forks[1] = (philos[i]->id_philo + 1) % philos[i]->table->nb_philos;
-		philos[i]->last_meal = 0;
+		if (init_mutex_philo(philo[i]) == EXIT_FAILURE)
+			return (NULL);
+		philo[i]->table = table;
+		philo[i]->id_philo = i;
+		philo[i]->meals_eaten = 0;
+		philo[i]->time_now = 0;
+		philo[i]->time_alive = 0;
 		i++;
 	}
-	return (philos);
-}
-
-static bool	init_mutex_table(t_table *table)
-{
-	table->fork_locks = init_forks(table);
-	if (!table->fork_locks)
-		return (false);
-	if (pthread_mutex_init(&table->write_locks, NULL) == -1)
-		return (printf(RED "Error: mutex init failed\n" NC), false);
-	return (true);
+	return (philo);
 }
 
 int init_table(t_table* table, int ac, char **av)
@@ -76,11 +56,12 @@ int init_table(t_table* table, int ac, char **av)
 	table->nb_of_meals = -1;
 	if (ac == 6)
 		table->nb_of_meals = ft_atoi(av[5]);
+	table->set_of_forks = ft_calloc(table->nb_philos, sizeof(size_t));
 	table->philos = init_philosophers(table);
 	if (!table->philos)
 		return (EXIT_FAILURE);
-	if (init_mutex_table(table) == false)
-		return (EXIT_FAILURE);
+	if (pthread_mutex_init(&table->write_locks, NULL) == -1)
+		return (printf(RED "Error: mutex init failed\n" NC), EXIT_FAILURE);
 	table->sim_stop = false;
 	table->start_time = 0;
 	return (EXIT_SUCCESS);

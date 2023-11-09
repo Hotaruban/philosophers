@@ -12,49 +12,73 @@
 
 #include "./philo.h"
 
-static int	eating(t_philo *philo)
+static int	take_forks(t_philo *philo)
 {
-	if (write_status(philo, FORK) == EXIT_FAILURE)
-		return (EXIT_FAILURE);
-	if (write_status(philo, FORK) == EXIT_FAILURE)
-		return (EXIT_FAILURE);
-	if (write_status(philo, EAT) == EXIT_FAILURE)
-		return (EXIT_FAILURE);
-	pthread_mutex_lock(&philo->time_lock);
-	philo->last_meal = get_time();
-	pthread_mutex_unlock(&philo->time_lock);
-	philo_find_morphee(philo->table, philo->table->time_to_eat);
-	if (philo->table->sim_stop == false)
+	pthread_mutex_lock(&philo->fork_lock);
+	if (philo->table->set_of_forks[philo->id_philo] == 1 
+		&& philo->table->set_of_forks[(philo->id_philo + 1)
+			% philo->table->nb_philos] == 1)
 	{
-		pthread_mutex_lock(&philo->time_lock);
-		philo->meals_ate += 1;
-		pthread_mutex_unlock(&philo->time_lock);
+		pthread_mutex_unlock(&philo->fork_lock);
+		philo->status = _thinking;
+		return (1);
 	}
-	return (EXIT_SUCCESS);
+	if (philo->table->set_of_forks[philo->id_philo] == 0)
+	{
+		philo->table->set_of_forks[philo->id_philo] = 1;
+		hermes_message(philo, "take fork [0]");
+	}
+	if (philo->table->set_of_forks[(philo->id_philo + 1)
+			% philo->table->nb_philos] == 0)
+	{
+		philo->table->set_of_forks[(philo->id_philo + 1)
+			% philo->table->nb_philos] = 1;
+		hermes_message(philo, "take fork [1]");
+		philo->status = _eating;
+		if (philo->table->nb_of_meals != -1)
+			philo->meals_eaten++;
+		pthread_mutex_unlock(&philo->fork_lock);
+		return (0);
+	}
+	pthread_mutex_unlock(&philo->fork_lock);
+	return (1);
 }
 
-static int	eat_sleep_routine(t_philo *philo)
+static void	put_forks_down(t_philo *philo)
 {
-	pthread_mutex_lock(&philo->table->fork_locks[philo->forks[0]]);
-	pthread_mutex_lock(&philo->table->fork_locks[philo->forks[1]]);
-	if (eating(philo) == EXIT_FAILURE)
-		return (EXIT_FAILURE);
-	write_status(philo, SLEEP);
-	pthread_mutex_unlock(&philo->table->fork_locks[philo->forks[1]]);
-	pthread_mutex_unlock(&philo->table->fork_locks[philo->forks[0]]);
-	philo_find_morphee(philo->table, philo->table->time_to_sleep);
-	write_status(philo, THINK);
-	return (EXIT_SUCCESS);
+	pthread_mutex_lock(&philo->fork_lock);
+	philo->table->set_of_forks[philo->id_philo] = 0;
+	philo->table->set_of_forks[(philo->id_philo + 1)
+			% philo->table->nb_philos] = 0;
+	philo->status = _thinking;
+	pthread_mutex_unlock(&philo->fork_lock);
 }
 
-static void	*lone_philo_routine(t_philo *philo)
+static void	daily_routine(t_philo *philo)
 {
-	pthread_mutex_lock(&philo->table->fork_locks[philo->forks[0]]);
-	write_status(philo, FORK);
-	philo_find_morphee(philo->table, philo->table->time_to_die);
-	write_status(philo, DIED);
-	pthread_mutex_unlock(&philo->table->fork_locks[philo->forks[0]]);
-	return (NULL);
+	while (philo->status != _dead)
+	{
+		if (philo->status == _thinking)
+		{
+			hermes_message(philo, "is thinking");
+			while (philo->status == _thinking)
+				if (take_forks(philo))
+					hypnos_touch_philo(philo, 0);
+		}
+		else if (philo->status == _eating)
+		{
+			hermes_message(philo, "is eating");
+			philo->time_alive = philo->time_now + philo->table->time_to_die;
+			philo->status = _sleeping;
+			hypnos_touch_philo(philo, philo->table->time_to_eat);
+		}
+		else if (philo->status == _sleeping)
+		{
+			hermes_message(philo, "is sleeping");
+			put_forks_down(philo);
+			hypnos_touch_philo(philo, philo->table->time_to_sleep);
+		}
+	}
 }
 
 void	*routine(void *data)
@@ -62,14 +86,15 @@ void	*routine(void *data)
 	t_philo	*philo;
 
 	philo = (t_philo *)data;
-	if (philo->table->nb_of_meals == 0)
-		return (NULL);
-	philo->last_meal = philo->table->start_time;
-	if (philo->table->time_to_die == 0)
-		return (NULL);
-	if (philo->table->nb_philos == 1)
-		return (lone_philo_routine(philo));
-	while (philo->table->sim_stop == false)
-		eat_sleep_routine(philo);
+	philo->time_now = get_time();
+	philo->time_alive = philo->table->start_time + philo->table->time_to_die;
+	if (philo->id_philo % 2 == 0 && philo->table->set_of_forks[philo->id_philo] == 0)
+		take_forks(philo);
+	else
+	{
+		philo->status = _thinking;
+		usleep(4999);
+	}
+	daily_routine(philo);
 	return (NULL);
 }

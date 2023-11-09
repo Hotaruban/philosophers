@@ -19,7 +19,7 @@ void	destroy_mutex_table(t_table *table)
 	i = 0;
 	while (i < table->nb_philos)
 	{
-		pthread_mutex_destroy(&table->fork_locks[i]);
+		pthread_mutex_destroy(&table->philos[i]->fork_lock);
 		pthread_mutex_destroy(&table->philos[i]->time_lock);
 		i++;
 	}
@@ -32,8 +32,8 @@ void	free_table(t_table *table)
 
 	if (!table)
 		return ;
-	if (table->fork_locks != NULL)
-		free(table->fork_locks);
+	if (table->set_of_forks != NULL)
+		free(table->set_of_forks);
 	if (table->philos != NULL)
 	{
 		i = 0;

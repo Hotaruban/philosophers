@@ -12,53 +12,48 @@
 
 #include "./philo.h"
 
-static bool	kill_philo(t_philo *philo)
+static void	thanatos_take_philo(t_table *table, unsigned int i)
 {
-	time_t	time;
-
-	time = get_time();
-	if ((time - philo->last_meal) >= philo->table->time_to_die)
-	{
-		write_status(philo, DIED);
-		return (true);
-	}
-	return (false);
+    pthread_mutex_lock(&table->write_locks);
+	printf("%ld %d died\n", get_time()
+		- table->start_time, table->philos[i]->id_philo + 1);
+	i = -1;
+	while (++i < table->nb_philos)
+		table->philos[i]->status = _dead;
+	return ;
 }
 
-static bool	end_condition_reached(t_table *table)
+static void	everyone_eaten(t_table *table)
 {
 	unsigned int	i;
-	bool			all_ate_enough;
 
-	all_ate_enough = true;
-	i = 0;
-	while (i < table->nb_philos)
-	{
-		pthread_mutex_lock(&table->philos[i]->time_lock);
-		if (kill_philo(table->philos[i]))
-			return (true);
-		if (table->nb_of_meals != -1)
-			if (table->philos[i]->meals_ate
-				< (unsigned int)table->nb_of_meals)
-				all_ate_enough = false;
-		pthread_mutex_unlock(&table->philos[i]->time_lock);
-		i++;
-	}
-	if (table->nb_of_meals != -1 && all_ate_enough == true)
-	{
-		write_status(table->philos[0], FORK);
-		return (true);
-	}
-	return (false);
+	i = -1;
+	while (++i < table->nb_philos)
+		table->philos[i]->status = _dead;
+	usleep(15000);
+	printf("All Philosophers has eaten %d time(s), they are full.\n",
+		table->nb_of_meals);
+	return ;
 }
 
 void	undertaker(t_table *table)
 {
-	while (table->sim_stop == false)
+    unsigned int i;
+    unsigned int nbr;
+
+	while (1)
 	{
-		if (end_condition_reached(table) == true)
-			return ;
-		usleep(100);
+        i = -1;
+        nbr = 0;
+        usleep(1);
+        while (++i < table->nb_philos)
+        {
+            if (table->philos[i]->status == _dead)
+                return (thanatos_take_philo(table, i));
+            if (table->nb_of_meals != -1)
+                nbr += table->philos[i]->meals_eaten == table->nb_of_meals;
+        }
+        if (table->nb_of_meals != -1 && nbr == table->nb_philos)
+            return (everyone_eaten(table));
 	}
-	return ;
 }
