@@ -54,7 +54,7 @@ static void	put_forks_down(t_philo *philo)
 
 static void	daily_routine(t_philo *philo)
 {
-	while (philo->status != _dead)
+	while (philo->status != _dead && philo->table->sim_stop == false)
 	{
 		if (philo->status == _thinking)
 		{
@@ -65,7 +65,8 @@ static void	daily_routine(t_philo *philo)
 		}
 		else if (philo->status == _eating)
 		{
-			hermes_message(philo, "is eating");
+			if (philo->table->nb_of_meals >= philo->meals_eaten)
+				hermes_message(philo, "is eating");
 			philo->time_alive = philo->time_now + philo->table->time_to_die;
 			if (philo->status != _dead)
 				philo->status = _sleeping;
