@@ -62,6 +62,7 @@ int	main(int ac, char **av)
 	if (start_simulation(&table) == EXIT_FAILURE)
 		return (EXIT_FAILURE);
 	undertaker(&table);
+	usleep(10000);
 	stop_simulation(&table);
 	return (EXIT_SUCCESS);
 }

@@ -36,7 +36,7 @@ int	check_if_phylo_alive(t_philo *philo, time_t time)
 void	hypnos_touch_philo(t_philo *philo, time_t time_ms)
 {
 	time_t	time;
-	
+
 	while (philo->status != _dead)
 	{
 		usleep(1);

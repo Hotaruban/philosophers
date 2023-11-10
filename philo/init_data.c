@@ -38,7 +38,7 @@ static t_philo	**init_philosophers(t_table *table)
 		if (init_mutex_philo(philo[i]) == EXIT_FAILURE)
 			return (NULL);
 		philo[i]->table = table;
-		philo[i]->id_philo = i;
+		philo[i]->id = i;
 		philo[i]->meals_eaten = 0;
 		philo[i]->time_now = 0;
 		philo[i]->time_alive = 0;
@@ -47,7 +47,7 @@ static t_philo	**init_philosophers(t_table *table)
 	return (philo);
 }
 
-int init_table(t_table* table, int ac, char **av)
+int	init_table(t_table *table, int ac, char **av)
 {
 	table->nb_philos = ft_atoi(av[1]);
 	table->time_to_die = ft_atoi(av[2]);

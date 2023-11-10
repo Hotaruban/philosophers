@@ -12,45 +12,43 @@
 
 #include "./philo.h"
 
-static int	take_forks(t_philo *philo)
+static int	take_forks(t_philo *ph)
 {
-	pthread_mutex_lock(&philo->fork_lock);
-	if (philo->table->set_of_forks[philo->id_philo] == 1 
-		&& philo->table->set_of_forks[(philo->id_philo + 1)
-			% philo->table->nb_philos] == 1)
+	pthread_mutex_lock(&ph->fork_lock);
+	if (ph->table->set_of_forks[ph->id] == 1
+		&& ph->table->set_of_forks[(ph->id + 1) % ph->table->nb_philos] == 1)
 	{
-		pthread_mutex_unlock(&philo->fork_lock);
-		philo->status = _thinking;
+		pthread_mutex_unlock(&ph->fork_lock);
+		ph->status = _thinking;
 		return (1);
 	}
-	if (philo->table->set_of_forks[philo->id_philo] == 0)
+	if (ph->table->set_of_forks[ph->id] == 0)
 	{
-		philo->table->set_of_forks[philo->id_philo] = 1;
-		hermes_message(philo, "take fork [0]");
+		ph->table->set_of_forks[ph->id] = 1;
+		hermes_message(ph, "take fork");
 	}
-	if (philo->table->set_of_forks[(philo->id_philo + 1)
-			% philo->table->nb_philos] == 0)
+	if (ph->table->set_of_forks[(ph->id + 1) % ph->table->nb_philos] == 0)
 	{
-		philo->table->set_of_forks[(philo->id_philo + 1)
-			% philo->table->nb_philos] = 1;
-		hermes_message(philo, "take fork [1]");
-		philo->status = _eating;
-		if (philo->table->nb_of_meals != -1)
-			philo->meals_eaten++;
-		pthread_mutex_unlock(&philo->fork_lock);
+		ph->table->set_of_forks[(ph->id + 1) % ph->table->nb_philos] = 1;
+		hermes_message(ph, "take fork");
+		ph->status = _eating;
+		if (ph->table->nb_of_meals != -1)
+			ph->meals_eaten++;
+		pthread_mutex_unlock(&ph->fork_lock);
 		return (0);
 	}
-	pthread_mutex_unlock(&philo->fork_lock);
+	pthread_mutex_unlock(&ph->fork_lock);
 	return (1);
 }
 
 static void	put_forks_down(t_philo *philo)
 {
 	pthread_mutex_lock(&philo->fork_lock);
-	philo->table->set_of_forks[philo->id_philo] = 0;
-	philo->table->set_of_forks[(philo->id_philo + 1)
-			% philo->table->nb_philos] = 0;
-	philo->status = _thinking;
+	philo->table->set_of_forks[philo->id] = 0;
+	philo->table->set_of_forks[(philo->id + 1)
+		% philo->table->nb_philos] = 0;
+	if (philo->status != _dead)
+		philo->status = _thinking;
 	pthread_mutex_unlock(&philo->fork_lock);
 }
 
@@ -69,7 +67,8 @@ static void	daily_routine(t_philo *philo)
 		{
 			hermes_message(philo, "is eating");
 			philo->time_alive = philo->time_now + philo->table->time_to_die;
-			philo->status = _sleeping;
+			if (philo->status != _dead)
+				philo->status = _sleeping;
 			hypnos_touch_philo(philo, philo->table->time_to_eat);
 		}
 		else if (philo->status == _sleeping)
@@ -86,9 +85,12 @@ void	*routine(void *data)
 	t_philo	*philo;
 
 	philo = (t_philo *)data;
+	philo->status = _thinking;
 	philo->time_now = get_time();
+	if (philo->table->nb_of_meals == 0)
+		return (NULL);
 	philo->time_alive = philo->table->start_time + philo->table->time_to_die;
-	if (philo->id_philo % 2 == 0 && philo->table->set_of_forks[philo->id_philo] == 0)
+	if (philo->id % 2 == 0 && philo->table->set_of_forks[philo->id] == 0)
 		take_forks(philo);
 	else
 	{

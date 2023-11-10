@@ -17,6 +17,6 @@ void	hermes_message(t_philo *ph, char *message)
 	pthread_mutex_lock(&ph->table->write_locks);
 	ph->time_now = get_time();
 	printf("%ld %d %s\n", ph->time_now - ph->table->start_time,
-		ph->id_philo + 1, message);
+		ph->id + 1, message);
 	pthread_mutex_unlock(&ph->table->write_locks);
 }

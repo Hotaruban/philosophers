@@ -60,7 +60,7 @@ typedef struct s_philo
 	pthread_mutex_t		time_lock;
 	pthread_mutex_t		fork_lock;
 	t_table				*table;
-	int					id_philo;
+	int					id;
 	int					meals_eaten;
 	t_status			status;
 	time_t				time_now;
@@ -69,8 +69,7 @@ typedef struct s_philo
 
 /*parsing and init functions*/
 bool	check_argument(int ac, char **av);
-int		init_table(t_table* table, int ac, char **av);
-
+int		init_table(t_table *table, int ac, char **av);
 
 /*write and times functions*/
 void	hermes_message(t_philo *ph, char *message);
@@ -93,6 +92,5 @@ void	*ft_calloc(size_t count, size_t size);
 void	destroy_mutex_table(t_table *table);
 void	free_table(t_table *table);
 void	destroy_and_free(t_table *table);
-
 
 #endif
